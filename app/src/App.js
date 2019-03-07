@@ -19,6 +19,8 @@ import Identities from './screens/Identities'
 import RequestPanelContent from './components/Panels/RequestPanelContent'
 import MenuButton from './components/MenuButton/MenuButton'
 import ipfs from './ipfs'
+import tokenAbi from './abi/minimeToken.json'
+//import votingAbi from './abi/voting.json'
 //import { networkContextType } from './provide-network'
 //import { makeEtherscanBaseUrl } from './utils'
 //import { addressesEqual } from './web3-utils'
@@ -30,32 +32,69 @@ class App extends React.Component {
   }
   static defaultProps = {
     requests: [],
+    proposals: [],
     authorized: [],
     network: {},
     userAccount: '',
+    tokenAddress: null,
   }
   state = {
     sidepanelOpened: false,
+    isTokenHolder: false,
+    token: null,
+    voting: null,
   }
-  /*
-  static childContextTypes = {
-    network: networkContextType,
-  }
-  getChildContext() {
-    const { network } = this.props
 
-    return {
-      network: {
-        etherscanBaseUrl: makeEtherscanBaseUrl(network.type),
-        type: network.type,
-      },
+  async componentWillReceiveProps({ app, tokenAddress, votingAddress, userAccount }) {
+    if(!this.state.token && tokenAddress){
+      const token = app.external(tokenAddress, tokenAbi)
+      this.setState({
+        ...this.state,
+        token,
+      })
+    }
+    /*
+    if(!this.state.voting && votingAddress){
+      const voting = app.external(votingAddress, votingAbi)
+      this.setState({
+        ...this.state,
+        voting,
+      })
+    }
+    */
+    if(this.state.token){
+      const balance = await this.getBalance(userAccount);
+      if(balance > 0){
+        this.setState({
+          ...this.state,
+          isTokenHolder: true,
+        })
+      } else {
+        this.setState({
+          ...this.state,
+          isTokenHolder: false,
+        })
+      }
     }
   }
-  */
-  handleRequest = ({ buffer, type, website, twitter, facebook, github, keybase }) => {
+
+  getBalance = (userAccount) => {
+    const { token } = this.state
+    return new Promise((resolve, reject) =>
+      token
+        .balanceOf(userAccount)
+        .first()
+        .subscribe(resolve, reject)
+    )
+  }
+
+  getUser = () => {
+    return this.props.userAccount
+  }
+
+  handleSubmission = ({ buffer, type, website, twitter, facebook, github, keybase }) => {
     const { app, userAccount } = this.props
     if(userAccount !== ''){
-      console.log('Ethereum Account: ', userAccount)
       //Generate json file
       const json = JSON.stringify({
                 website: website,
@@ -86,23 +125,26 @@ class App extends React.Component {
           app
             .submitProof(results[hashIndex].hash)
             .subscribe(
-              txHash1 => {
-                console.log('Tx: ', txHash1)
-                app
-                  .requestAuthorization(userAccount)
-                  .subscribe(
-                    txHash2 => {
-                      console.log('Tx: ', txHash2)
-                    },
-                    err => {
-                      console.error(err)
-                    })
+              txHash => {
+                console.log('Tx: ', txHash)
               },
               err => {
                 console.error(err)
               })
         })
     }
+  }
+  handleRequest = (user) => {
+    const { app } = this.props
+    app
+      .requestAuthorization(user)
+      .subscribe(
+        txHash => {
+          console.log('Tx: ', txHash)
+        },
+        err => {
+          console.error(err)
+        })
   }
   handleMenuPanelOpen = () => {
     this.props.sendMessageToWrapper('menuPanel', true)
@@ -123,10 +165,14 @@ class App extends React.Component {
   render() {
     const {
       requests,
+      proposals,
       authorized,
       userAccount,
     } = this.props
-    const { config, sidepanelOpened } = this.state
+    const {
+      sidepanelOpened,
+      isTokenHolder,
+    } = this.state
     return (
       <PublicUrl.Provider url="./aragon-ui/">
         <BaseStyles />
@@ -153,11 +199,14 @@ class App extends React.Component {
               />
             }
           >
-            {(requests.length > 0 || authorized.length > 0) ? (
+            {(requests.length > 0 || proposals.length > 0 || authorized.length > 0) ? (
               <Identities
                 requests={requests}
+                proposals={proposals}
                 authorized={authorized}
                 userAccount={userAccount}
+                isTokenHolder={isTokenHolder}
+                onInitiateAuth={this.handleRequest}
               />
             ) : (
               <EmptyState onActivate={this.handleSidepanelOpen} />
@@ -173,7 +222,8 @@ class App extends React.Component {
           >
             <RequestPanelContent
               opened={sidepanelOpened}
-              onRequestConfirmation={this.handleRequest}
+              onRequestConfirmation={this.handleSubmission}
+              getUser={this.getUser}
             />
           </SidePanel>
         </Main>
@@ -209,7 +259,11 @@ export default observe(
         ...state,
         requests: identities
           ? identities
-              .filter(({ authorized }) => authorized === false)
+              .filter(({ authorized, initiated }) => (authorized === false && initiated === false))
+          : [],
+        proposals: identities
+          ? identities
+              .filter(({ authorized, initiated }) => (authorized === false && initiated === true))
           : [],
         authorized: identities
           ? identities

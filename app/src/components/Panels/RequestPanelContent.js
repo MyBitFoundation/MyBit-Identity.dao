@@ -1,7 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Button, Field, IconError, Text, TextInput, Info, theme } from '@aragon/ui'
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@material-ui/core/CircularProgress'
+import isURL from 'validator/lib/isURL'
 
 const initialState = {
   websiteField: '',
@@ -31,12 +32,10 @@ class RequestPanelContent extends React.Component {
 
     // Finished closing the panel, its state can be reset
     if (!opened && this.props.opened) {
-      this.setState({ ...initialState })
+      this.setState({
+        ...initialState
+      })
     }
-  }
-  isWebsite(url) {
-    //Just a placeholder for the time being
-    return true
   }
   /*
   filteredWebsite() {
@@ -58,8 +57,6 @@ class RequestPanelContent extends React.Component {
     event.stopPropagation()
     event.preventDefault()
     const file = event.target.files[0]
-    console.log('File')
-    console.log(file.name)
     let arr = file.name.split('.')
     this.setState({
       type: arr[arr.length-1]
@@ -109,21 +106,25 @@ class RequestPanelContent extends React.Component {
       keybaseField,
       buffer,
       type
-    } = this.state;
+    } = this.state
+    const { getUser } = this.props
     //const website = this.filteredWebsite()
 
-    if(!this.isWebsite(keybaseField)){
-      this.setState({ error : 'Keybase field invalid.' })
-    } else if(!this.isWebsite(githubField)){
-      this.setState({ error : 'GitHub field invalid.' })
-    } else if(!this.isWebsite(facebookField)){
-      this.setState({ error : 'Facebook field invalid.' })
-    } else if(!this.isWebsite(twitterField)){
-      this.setState({ error : 'Twitter field invalid.' })
-    } else if(!this.isWebsite(websiteField)){
-      this.setState({ error : 'Website field invalid.' })
+    const userAccount = getUser()
+    if(userAccount == '' || userAccount == undefined){
+      this.setState({ error : 'Please sign in to MetaMask.' })
     } else if(buffer == undefined || type == undefined){
       this.setState({ error : 'Something went wrong. Please select select a photo again.'})
+    } else if(websiteField != '' && !isURL(websiteField)){
+      this.setState({ error : 'Website field invalid.' })
+    } else if(twitterField != '' && !isURL(twitterField)){
+      this.setState({ error : 'Twitter field invalid.' })
+    } else if(facebookField != '' && !isURL(facebookField)){
+      this.setState({ error : 'Facebook field invalid.' })
+    } else if(githubField != '' && !isURL(githubField)){
+      this.setState({ error : 'GitHub field invalid.' })
+    } else if(keybaseField != '' && !isURL(keybaseField)){
+      this.setState({ error : 'Keybase field invalid.' })
     } else {
       this.setState({
         loading: true
@@ -238,7 +239,7 @@ class RequestPanelContent extends React.Component {
           )}
           <Messages>
             {error && <ErrorMessage message={error} />}
-            {warning&& <WarningMessage message={warning} />}
+            {warning && <WarningMessage message={warning} />}
           </Messages>
         </form>
       </div>

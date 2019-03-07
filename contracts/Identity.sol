@@ -1,58 +1,72 @@
 pragma solidity ^0.4.24;
 
 import "@aragon/os/contracts/apps/AragonApp.sol";
+import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
 
 contract Identity is AragonApp {
     /// Events
-    event NewRequest(address indexed user, uint256 indexed requestID, string ipfs);
-    event Authorized(address indexed user, uint256 indexed requestID);
+    event NewSubmission(address indexed user, string ipfs);
+    event Authorized(address indexed user);
 
     /// Values
-    struct Request {
-      uint256 requestID;
-      string ipfs;
-    }
-    mapping (address => Request) requests;
-    mapping (address => bool) whitelist;
-    uint256 currentRequest;
+    address public token;
+    address public voting;
+    mapping (address => string) public ipfs;
+    mapping (address => bool) public whitelist;
 
     /// ACL
     bytes32 constant public AUTHORIZE_ROLE = keccak256("AUTHORIZE_ROLE");
 
-    function initialize(/*address[] _whitelist*/) onlyInit public {
+    function initialize(address _token, address _voting, address[] _whitelist) onlyInit public {
       initialized();
-      currentRequest = 1;
-      /*
+      token = _token;
+      voting = _voting;
       for(uint8 i=0; i<_whitelist.length; i++){
         whitelist[_whitelist[i]] = true;
       }
-      */
     }
 
     /**
-     * @notice Submit supporting evidence that you are a real person. This will take two transactions. First, to submit the proof, then to submit the request.
+     * @notice Submit supporting evidence that you are a real person.
      * @param _ipfs The ipfs address where supporting evidence is located
      */
-    function submitProof(string _ipfs) external returns (uint256){
+    function submitProof(string _ipfs) external returns (bool){
       require(!whitelist[msg.sender]);
-      requests[msg.sender] = Request({
-        requestID: currentRequest,
-        ipfs: _ipfs
-      });
-      currentRequest += 1;
-      emit NewRequest(msg.sender, requests[msg.sender].requestID, _ipfs);
-      return requests[msg.sender].requestID;
+      ipfs[msg.sender] = _ipfs;
+      emit NewSubmission(msg.sender, _ipfs);
+      return true;
     }
 
 
     /**
-     * @notice Request approval from the DAO
+     * @notice Request approval for `_user`
      * @param _user Ethereum address of the user
      */
-    function requestAuthorization(address _user) external auth(AUTHORIZE_ROLE) returns (bool){
-      require(requests[_user].requestID != 0);
+    function requestAuthorization(address _user)
+    external
+    auth(AUTHORIZE_ROLE)
+    returns (bool){
+      require(bytes(ipfs[_user]).length != 0);
       whitelist[_user] = true;
-      emit Authorized(_user, requests[_user].requestID);
+      emit Authorized(_user);
       return true;
+    }
+
+    /**
+     * @notice Revoke approval for `_user`
+     * @param _user Ethereum address of the user
+     */
+    function revokeAuthorization(address _user)
+    external
+    auth(AUTHORIZE_ROLE)
+    returns (bool){
+      whitelist[_user] = false;
+      return true;
+    }
+
+    function checkWhitelist(address _user)
+    external
+    returns (bool){
+      return whitelist[_user];
     }
 }

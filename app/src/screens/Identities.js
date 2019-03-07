@@ -21,8 +21,11 @@ class Identities extends React.Component {
   render() {
     const {
       requests,
+      proposals,
       authorized,
       userAccount,
+      isTokenHolder,
+      onInitiateAuth,
     } = this.props
 
     const {
@@ -31,6 +34,7 @@ class Identities extends React.Component {
 
     const items = []
     if(requests.length > 0) items.push('Requests')
+    if(proposals.length > 0) items.push('Proposals')
     if(authorized.length > 0) items.push('Confirmed')
 
     return (
@@ -54,7 +58,17 @@ class Identities extends React.Component {
               <UserRow
                 key={user}
                 user={user}
-                requestID={requestID}
+                ipfs={ipfs}
+                isCurrentUser={userAccount && userAccount === user}
+                isTokenHolder={isTokenHolder}
+                onInitiateAuth={onInitiateAuth}
+              />
+            ))}
+          {items[selected] == 'Proposals' &&
+           proposals.map(({ user, requestID, ipfs }) => (
+              <UserRow
+                key={user}
+                user={user}
                 ipfs={ipfs}
                 isCurrentUser={userAccount && userAccount === user}
               />
@@ -64,7 +78,6 @@ class Identities extends React.Component {
               <UserRow
                 key={user}
                 user={user}
-                requestID={requestID}
                 ipfs={ipfs}
                 isCurrentUser={userAccount && userAccount === user}
               />

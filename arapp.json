@@ -4,8 +4,14 @@
       "name": "Confirm user identity",
       "id": "AUTHORIZE_ROLE",
       "params": [
-        "User",
-        "RequestID"
+        "User"
+      ]
+    },
+    {
+      "name": "Initiate proposal",
+      "id": "PROPOSE_ROLE",
+      "params": [
+        "User"
       ]
     }
   ],
