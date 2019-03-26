@@ -3,7 +3,11 @@ pragma solidity ^0.4.24;
 import "@aragon/os/contracts/apps/AragonApp.sol";
 import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
 
-contract Identity is AragonApp {
+interface WhitelistInterface {
+  function checkWhitelist(address _user) external view returns (bool);
+}
+
+contract Identity is AragonApp, WhitelistInterface {
     /// Events
     event NewSubmission(address indexed user, string ipfs);
     event Authorized(address indexed user);
@@ -66,6 +70,7 @@ contract Identity is AragonApp {
 
     function checkWhitelist(address _user)
     external
+    view
     returns (bool){
       return whitelist[_user];
     }

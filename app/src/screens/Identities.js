@@ -25,6 +25,7 @@ class Identities extends React.Component {
       authorized,
       userAccount,
       isTokenHolder,
+      ipfsURL,
       onInitiateAuth,
     } = this.props
 
@@ -59,6 +60,7 @@ class Identities extends React.Component {
                 key={user}
                 user={user}
                 ipfs={ipfs}
+                ipfsURL={ipfsURL}
                 isCurrentUser={userAccount && userAccount === user}
                 isTokenHolder={isTokenHolder}
                 onInitiateAuth={onInitiateAuth}
@@ -70,6 +72,7 @@ class Identities extends React.Component {
                 key={user}
                 user={user}
                 ipfs={ipfs}
+                ipfsURL={ipfsURL}
                 isCurrentUser={userAccount && userAccount === user}
               />
             ))}
@@ -79,6 +82,7 @@ class Identities extends React.Component {
                 key={user}
                 user={user}
                 ipfs={ipfs}
+                ipfsURL={ipfsURL}
                 isCurrentUser={userAccount && userAccount === user}
               />
             ))}

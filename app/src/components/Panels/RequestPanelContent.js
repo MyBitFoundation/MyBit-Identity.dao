@@ -86,13 +86,13 @@ class RequestPanelContent extends React.Component {
 
   handleGitHubChange = event => {
     this.setState({
-      gibhutField: event.target.value,
+      githubField: event.target.value,
     })
   }
 
   handleKeybaseChange = event => {
     this.setState({
-      twitterField: event.target.value,
+      keybaseField: event.target.value,
     })
   }
 

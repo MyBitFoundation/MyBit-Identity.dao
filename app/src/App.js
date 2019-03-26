@@ -18,7 +18,7 @@ import EmptyState from './screens/EmptyState'
 import Identities from './screens/Identities'
 import RequestPanelContent from './components/Panels/RequestPanelContent'
 import MenuButton from './components/MenuButton/MenuButton'
-import ipfs from './ipfs'
+import { ipfs, ipfsURL } from './ipfs'
 import tokenAbi from './abi/minimeToken.json'
 //import votingAbi from './abi/voting.json'
 //import { networkContextType } from './provide-network'
@@ -206,6 +206,7 @@ class App extends React.Component {
                 authorized={authorized}
                 userAccount={userAccount}
                 isTokenHolder={isTokenHolder}
+                ipfsURL={ipfsURL}
                 onInitiateAuth={this.handleRequest}
               />
             ) : (

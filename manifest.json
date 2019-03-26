@@ -1,8 +1,8 @@
 {
   "name": "Identity",
-  "description": "An application for Aragon",
+  "description": "Identity management on Aragon",
   "icons": [{
-    "src": "/images/icon.png",
+    "src": "/images/icon.svg",
     "sizes": "22x22"
   }],
   "start_url": "/index.html",

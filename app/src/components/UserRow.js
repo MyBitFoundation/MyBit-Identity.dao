@@ -22,6 +22,7 @@ class UserRow extends React.Component {
     const {
       user,
       ipfs,
+      ipfsURL,
       isCurrentUser,
       isTokenHolder,
     } = this.props
@@ -42,7 +43,7 @@ class UserRow extends React.Component {
           </Owner>
         </TableCell>
         <TableCell>
-          <SafeLink href={`https://gateway.ipfs.io/ipfs/${ipfs}`} target='_blank'>
+          <SafeLink href={`${ipfsURL}${ipfs}`} target='_blank'>
             {ipfs}
           </SafeLink>
         </TableCell>

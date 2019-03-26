@@ -6,13 +6,6 @@
       "params": [
         "User"
       ]
-    },
-    {
-      "name": "Initiate proposal",
-      "id": "PROPOSE_ROLE",
-      "params": [
-        "User"
-      ]
     }
   ],
   "environments": {
