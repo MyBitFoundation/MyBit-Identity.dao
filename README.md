@@ -1,4 +1,37 @@
 #MyBit Identity
+## mybit-identity.open.aragonpm.eth v1.1.1:
+ - Content (ipfs): QmNfQK75jCouZJY7EiRPoiLHXEk1m8vAPTaSV1gdKTGbN6
+ - Transaction hash: 0x9ba7382fa93bdb65b6c3d8159a26d295482d09168ec7fd24892a8b70415323ab
+
+## mybit-identity.open.aragonpm.eth v1.1.0:
+ - Content (ipfs): QmPAkM72Xnkq57hW3ZaLFW2wqL4KvmLmdkNo6UkUcNjG7r
+ - Transaction hash: 0x273fc5931e86653146f614c17fc8306e648535e28953b69c02df7337189cb93d
+
+## mybit-identity.open.aragonpm.eth v1.0.16:
+ - Content (ipfs): QmWfhJhZL9dNaL3obPomJTEV2rM5o7RJLCo7vcEStGTyzk
+ - Transaction hash: 0xbff6bd6e00566b4eae99682b39e9341da16de861096261443461dac0af59cf49
+
+## mybit-identity.open.aragonpm.eth v1.0.15:
+ - Content (ipfs): QmcWHjVwNKKr1Zou347zVCJgtNcrHcx5R7eGFyH5MUUG4U
+ - Transaction hash: 0xaa849c8fe7bc886ef33bbf3f267f1d2a82696995c26d9799de3e18d6f1f2fa30
+
+## mybit-identity.open.aragonpm.eth v1.0.14:
+ - Content (ipfs): QmdzqibUX6KAWL3YoiYFVgYP22nV3WPCAAY8k7EiBVWGfh
+ - Transaction hash: 0x2908b8385dc4e54f8336a5ee839ab3684f1d0f50eaf6d297ef0e888716606ddb
+
+## mybit-identity.open.aragonpm.eth v1.0.13:
+ - Content (ipfs): QmWPz4LEJ6B6wudGcDM6U99jTEBYa42heyfVvrcCZVbNRv
+ - Transaction hash: 0x4687fba195c77d4206f97eedc326442f30e6aab283d364cafa045941c48ba76d
+
+## mybit-identity.open.aragonpm.eth v1.0.12:
+ - Contract address: 0xdD156cAC962d093a1ed25A6A922240Ff4BFe228a
+ - Content (ipfs): QmYK2iUF8UMjJUpWvy2bbk8GCAyrZiFmYEqAarRFHYNbAm
+ - Transaction hash: 0x52ec3e40cc19ebd5004d30b60b9063cfadd7ef030aed42ac3758fd7632bd6c25
+
+## mybit-identity.open.aragonpm.eth v1.0.11:
+ - Contract address: 0xdD156cAC962d093a1ed25A6A922240Ff4BFe228a
+ - Content (ipfs): QmbTUdxH1ZxHiiaWdSqXRqqCBiWVJCETdU9HBfX9DNbSR7
+ - Transaction hash: 0xbb39ce7118859c6d47293c014ebffb6e1423fd47d5d16c110aea89cb364cea1f
 
 ## mybit-identity.open.aragonpm.eth v1.0.10:
  - Contract address: 0xdD156cAC962d093a1ed25A6A922240Ff4BFe228a

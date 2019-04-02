@@ -37,12 +37,32 @@ class RequestPanelContent extends React.Component {
       })
     }
   }
-  /*
-  filteredWebsite() {
-    const { websiteField } = this.state
-    return websiteField.trim()
+
+  processField = (field) => {
+    return field.toLowerCase().replace('http://', '').replace('https://', '').replace('www.', '')
   }
-  */
+
+  correctWebsite = (given, target) => {
+    const urlArray = given.split('/')
+    if(urlArray[0].includes(target)){
+      return true
+    } else {
+      return false
+    }
+  }
+
+  getUsername = (given, prefix) => {
+    if(given.includes(prefix)){
+      let urlArray = given.split(prefix)
+      const postString = urlArray[urlArray.length-1]
+      urlArray = postString.split('/')
+      urlArray = urlArray[0].split('?')
+      return urlArray[0]
+    } else {
+      return ''
+    }
+
+  }
 
   //Convert the file to buffer to store on IPFS
   convertToBuffer = async(reader) => {
@@ -110,33 +130,44 @@ class RequestPanelContent extends React.Component {
     const { getUser } = this.props
     //const website = this.filteredWebsite()
 
+    const website = this.processField(websiteField)
+    const twitter = this.processField(twitterField)
+    const facebook = this.processField(facebookField)
+    const github = this.processField(githubField)
+    const keybase = this.processField(keybaseField)
+
     const userAccount = getUser()
     if(userAccount == '' || userAccount == undefined){
       this.setState({ error : 'Please sign in to MetaMask.' })
     } else if(buffer == undefined || type == undefined){
       this.setState({ error : 'Something went wrong. Please select select a photo again.'})
-    } else if(websiteField != '' && !isURL(websiteField)){
+    } else if(website != '' && !isURL(website)){
       this.setState({ error : 'Website field invalid.' })
-    } else if(twitterField != '' && !isURL(twitterField)){
+    } else if(twitter != '' && !isURL(twitter) && !this.correctWebsite(twitter, 'twitter.com')){
       this.setState({ error : 'Twitter field invalid.' })
-    } else if(facebookField != '' && !isURL(facebookField)){
+    } else if(facebook != '' && !isURL(facebook) && !this.correctWebsite(facebook, 'facebook.com')){
       this.setState({ error : 'Facebook field invalid.' })
-    } else if(githubField != '' && !isURL(githubField)){
+    } else if(github != '' && !isURL(github) && !this.correctWebsite(github, 'github.com')){
       this.setState({ error : 'GitHub field invalid.' })
-    } else if(keybaseField != '' && !isURL(keybaseField)){
+    } else if(keybase != '' && !isURL(keybase) && !this.correctWebsite(keybase, 'keybase.io')){
       this.setState({ error : 'Keybase field invalid.' })
     } else {
       this.setState({
         loading: true
       })
+
       this.props.onRequestConfirmation({
         buffer: buffer,
         type: type,
-        website: websiteField,
-        twitter: twitterField,
-        facebook: facebookField,
-        github: githubField,
-        keybase: keybaseField,
+        website: website,
+        twitter: twitter,
+        twitter_name: this.getUsername(twitter, 'twitter.com/').replace('@', ''),
+        facebook: facebook,
+        facebook_name: this.getUsername(facebook, 'facebook.com/'),
+        github: github,
+        github_name: this.getUsername(github, 'github.com/'),
+        keybase: keybase,
+        keybase_name: this.getUsername(keybase, 'keybase.io/'),
       })
     }
   }

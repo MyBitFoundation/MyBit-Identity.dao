@@ -90,7 +90,7 @@ contract Kit is KitBase {
         vault.initialize();
         //finance.initialize(vault, PERIOD);
         tokenManager.initialize(token, true, 1);
-        voting.initialize(token, 50 * PCT, 20 * PCT, 1 days);
+        voting.initialize(token, 50 * PCT, 20 * PCT, 2 minutes);
         identity.initialize(address(token), address(voting), whitelist);
 
         //acl.createPermission(this, tokenManager, tokenManager.MINT_ROLE(), this);

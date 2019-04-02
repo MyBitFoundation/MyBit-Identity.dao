@@ -20,10 +20,6 @@ import RequestPanelContent from './components/Panels/RequestPanelContent'
 import MenuButton from './components/MenuButton/MenuButton'
 import { ipfs, ipfsURL } from './ipfs'
 import tokenAbi from './abi/minimeToken.json'
-//import votingAbi from './abi/voting.json'
-//import { networkContextType } from './provide-network'
-//import { makeEtherscanBaseUrl } from './utils'
-//import { addressesEqual } from './web3-utils'
 
 class App extends React.Component {
   static propTypes = {
@@ -34,47 +30,23 @@ class App extends React.Component {
     requests: [],
     proposals: [],
     authorized: [],
+    failed: [],
     network: {},
     userAccount: '',
     tokenAddress: null,
   }
   state = {
     sidepanelOpened: false,
-    isTokenHolder: false,
     token: null,
-    voting: null,
   }
 
-  async componentWillReceiveProps({ app, tokenAddress, votingAddress, userAccount }) {
+  componentWillReceiveProps = async ({ app, tokenAddress, userAccount }) => {
     if(!this.state.token && tokenAddress){
       const token = app.external(tokenAddress, tokenAbi)
       this.setState({
         ...this.state,
         token,
       })
-    }
-    /*
-    if(!this.state.voting && votingAddress){
-      const voting = app.external(votingAddress, votingAbi)
-      this.setState({
-        ...this.state,
-        voting,
-      })
-    }
-    */
-    if(this.state.token){
-      const balance = await this.getBalance(userAccount);
-      if(balance > 0){
-        this.setState({
-          ...this.state,
-          isTokenHolder: true,
-        })
-      } else {
-        this.setState({
-          ...this.state,
-          isTokenHolder: false,
-        })
-      }
     }
   }
 
@@ -92,16 +64,20 @@ class App extends React.Component {
     return this.props.userAccount
   }
 
-  handleSubmission = ({ buffer, type, website, twitter, facebook, github, keybase }) => {
+  handleSubmission = ({ buffer, type, website, twitter, twitter_name, facebook, facebook_name, github, github_name, keybase, keybase_name }) => {
     const { app, userAccount } = this.props
     if(userAccount !== ''){
       //Generate json file
       const json = JSON.stringify({
                 website: website,
                 twitter: twitter,
+                twitter_name: twitter_name,
                 facebook: facebook,
+                facebook_name: facebook_name,
                 github: github,
-                keybase: keybase
+                github_name: github_name,
+                keybase: keybase,
+                keybase_name: keybase_name,
               }, null, 4)
 
       //Save to IPFS and return address
@@ -115,10 +91,10 @@ class App extends React.Component {
           content: buffer
         }
       ]
-      console.log('Uploading to IPFS. Please wait...')
+      //console.log('Uploading to IPFS. Please wait...')
       ipfs.add(files)
         .then(results => {
-          console.log(results)
+          //console.log(results)
           const hashIndex = results.findIndex(ipfsObject => ipfsObject.path === "folder")
           this.handleSidepanelClose()
           //Save request ot Ethereum (two parts -- submitProof, then requestAuthorization (which goes to a vote))
@@ -126,7 +102,7 @@ class App extends React.Component {
             .submitProof(results[hashIndex].hash)
             .subscribe(
               txHash => {
-                console.log('Tx: ', txHash)
+                //console.log('Tx: ', txHash)
               },
               err => {
                 console.error(err)
@@ -140,7 +116,19 @@ class App extends React.Component {
       .requestAuthorization(user)
       .subscribe(
         txHash => {
-          console.log('Tx: ', txHash)
+          //console.log('Tx: ', txHash)
+        },
+        err => {
+          console.error(err)
+        })
+  }
+  handleRevoke = (user) => {
+    const { app } = this.props
+    app
+      .revokeAuthorization(user)
+      .subscribe(
+        txHash => {
+          //console.log('Tx: ', txHash)
         },
         err => {
           console.error(err)
@@ -167,11 +155,11 @@ class App extends React.Component {
       requests,
       proposals,
       authorized,
+      failed,
       userAccount,
     } = this.props
     const {
       sidepanelOpened,
-      isTokenHolder,
     } = this.state
     return (
       <PublicUrl.Provider url="./aragon-ui/">
@@ -199,15 +187,18 @@ class App extends React.Component {
               />
             }
           >
-            {(requests.length > 0 || proposals.length > 0 || authorized.length > 0) ? (
+            {(requests.length > 0 || proposals.length > 0 || authorized.length > 0 || failed.length > 0) ? (
               <Identities
                 requests={requests}
                 proposals={proposals}
                 authorized={authorized}
+                failed={failed}
                 userAccount={userAccount}
-                isTokenHolder={isTokenHolder}
+                ipfsAPI={ipfs}
                 ipfsURL={ipfsURL}
+                getBalance={this.getBalance}
                 onInitiateAuth={this.handleRequest}
+                onInitiateRevoke={this.handleRevoke}
               />
             ) : (
               <EmptyState onActivate={this.handleSidepanelOpen} />
@@ -253,9 +244,7 @@ export default observe(
       if (!state) {
         return
       }
-
       const { identities } = state
-
       return {
         ...state,
         requests: identities
@@ -264,11 +253,15 @@ export default observe(
           : [],
         proposals: identities
           ? identities
-              .filter(({ authorized, initiated }) => (authorized === false && initiated === true))
+              .filter(({ authorized, failed, initiated }) => (authorized === false && failed === false && initiated === true))
           : [],
         authorized: identities
           ? identities
               .filter(({ authorized }) => authorized === true)
+          : [],
+        failed: identities
+          ? identities
+              .filter(({ failed }) => failed === true)
           : [],
       }
     }),

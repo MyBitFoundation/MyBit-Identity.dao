@@ -139,13 +139,15 @@ function updateRequests(state, returnValues) {
     identities.push({
       ...returnValues,
       initiated: false,
-      authorized: false
+      authorized: false,
+      failed: false
     })
   } else {
     identities[idIndex] = {
       ...returnValues,
       initiated: false,
-      authorized: false
+      authorized: false,
+      failed: false,
     }
   }
   return {
@@ -170,7 +172,7 @@ async function updateVote(voting, state, { voteId, creator }) {
   if(state.identityAddress){
     const { identityAddress, identities = [] } = state
     const subscript = '0x00000001' + identityAddress.substr(2).toLowerCase() + '0000002476c51f02000000000000000000000000'
-    const { script } = await getVote(voting, voteId)
+    const { open, executed, script } = await getVote(voting, voteId)
     if(script.includes(subscript)) {
       const user = script.replace(subscript, '0x')
       const idIndex = identities.findIndex(id =>
@@ -178,12 +180,21 @@ async function updateVote(voting, state, { voteId, creator }) {
       )
       if (idIndex !== -1) {
         identities[idIndex].initiated = true
+        if(open === false && executed === false){
+          identities[idIndex].failed = true
+        } else {
+          identities[idIndex].failed = false
+        }
       }
       return {
         ...state,
         identities
       }
+    } else {
+      return state
     }
+  } else {
+    return state
   }
 }
 
