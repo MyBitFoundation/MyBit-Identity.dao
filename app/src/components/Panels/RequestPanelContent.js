@@ -5,6 +5,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import isURL from 'validator/lib/isURL'
 
 const initialState = {
+  introField: '',
   websiteField: '',
   twitterField: '',
   facebookField: '',
@@ -26,7 +27,7 @@ class RequestPanelContent extends React.Component {
     if (opened && !this.props.opened) {
       // setTimeout is needed as a small hack to wait until the input is
       // on-screen before we call focus
-      this.websiteInput && setTimeout(() => this.websiteInput.focus(), 0)
+      this.introInput && setTimeout(() => this.introInput.focus(), 0)
 
     }
 
@@ -86,6 +87,12 @@ class RequestPanelContent extends React.Component {
     reader.onloadend = () => this.convertToBuffer(reader)
   };
 
+  handleIntroChange = event => {
+    this.setState({
+      introField: event.target.value,
+    })
+  }
+
   handleWebsiteChange = event => {
     this.setState({
       websiteField: event.target.value,
@@ -119,6 +126,7 @@ class RequestPanelContent extends React.Component {
   handleSubmit = event => {
     event.preventDefault()
     const {
+      introField,
       websiteField,
       twitterField,
       facebookField,
@@ -159,6 +167,7 @@ class RequestPanelContent extends React.Component {
       this.props.onRequestConfirmation({
         buffer: buffer,
         type: type,
+        intro: introField,
         website: website,
         twitter: twitter,
         twitter_name: this.getUsername(twitter, 'twitter.com/').replace('@', ''),
@@ -174,6 +183,7 @@ class RequestPanelContent extends React.Component {
 
   render() {
     const {
+      introField,
       websiteField,
       twitterField,
       facebookField,
@@ -201,6 +211,20 @@ class RequestPanelContent extends React.Component {
               required
             />
           </Field>
+          <Field
+            label='Introduce Yourself (markdown supported)'
+          >
+            <TextArea
+              innerRef={element => (this.introInput = element)}
+              value={introField}
+              onChange={this.handleIntroChange}
+              wide
+            />
+          </Field>
+          <Info>
+            Including social media posts that reference your Ethereum address can help ensure your identity is accepted.
+          </Info>
+          <br/>
           <Field
             label='Website'
           >
@@ -251,10 +275,6 @@ class RequestPanelContent extends React.Component {
               wide
             />
           </Field>
-          <Info>
-            Including social media posts that reference your Ethereum address can help ensure your identity is accepted.
-          </Info>
-          <br/>
           {loading ? (
             <div>
               <Spinner/>
@@ -278,6 +298,20 @@ class RequestPanelContent extends React.Component {
   }
 }
 
+const TextArea = styled.textarea`
+  width:100%;
+  max-width:100%;
+  min-width:100%;
+  height:100px;
+  min-height:33px;
+  padding:5px 10px;
+  border: 1px solid rgba(209, 209, 209, 0.5);
+  border-radius: 3px;
+  &:focus {
+    outline: none;
+    border-color: ${theme.contentBorderActive};
+  }
+`
 const Messages = styled.div`
   margin-top: 15px;
 `

@@ -11,6 +11,7 @@ contract Identity is AragonApp, WhitelistInterface {
     /// Events
     event NewSubmission(address indexed user, string ipfs);
     event Authorized(address indexed user);
+    event Revoked(address indexed user);
 
     /// Values
     address public token;
@@ -65,6 +66,7 @@ contract Identity is AragonApp, WhitelistInterface {
     auth(AUTHORIZE_ROLE)
     returns (bool){
       whitelist[_user] = false;
+      emit Revoked(_user);
       return true;
     }
 

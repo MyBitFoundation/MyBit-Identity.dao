@@ -82,7 +82,7 @@ contract Kit is KitBase {
         Identity identity = Identity(dao.newAppInstance(identityAppId, latestVersionAppBase(identityAppId)));
 
         MiniMeToken token = tokenFactory.createCloneToken(MiniMeToken(0), 0, "MyVote", 0, "MYV", true);
-        token.generateTokens(root, 10);
+        token.generateTokens(root, 2);
         token.generateTokens(address(0x8401Eb5ff34cc943f096A32EF3d5113FEbE8D4Eb), 1);
         token.changeController(tokenManager);
 

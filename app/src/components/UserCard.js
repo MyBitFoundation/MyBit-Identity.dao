@@ -1,10 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
 import {
-  Card,
   Badge,
   SafeLink,
   Button,
+  theme,
 } from '@aragon/ui'
 
 class UserCard extends React.Component {
@@ -19,19 +19,19 @@ class UserCard extends React.Component {
     isTokenHolder: false,
   }
   handleAuth = () => {
-    const { user, onInitiateAuth } = this.props
-    onInitiateAuth(user)
+    const { address, onInitiateAuth } = this.props
+    onInitiateAuth(address)
   }
   handleRevoke = () => {
-    const { user, onInitiateRevoke } = this.props
-    onInitiateRevoke(user)
+    const { address, onInitiateRevoke } = this.props
+    onInitiateRevoke(address)
   }
 
   componentDidMount = async () => {
     const { ipfs, ipfsURL, ipfsAPI, userAccount, getBalance } = this.props
     if(ipfsAPI){
       const ipfsContents = await ipfsAPI.get(ipfs)
-      const userPic = `${ipfsURL}${ipfsContents[ipfsContents.findIndex(ipfsObject => ipfsObject.path.includes('mugshot'))].path}`
+      const userPic = `${ipfsURL}${ipfsContents[ipfsContents.findIndex(ipfsObject => (ipfsObject.path.includes('pic') || ipfsObject.path.includes('mugshot')))].path}`
       fetch(`${ipfsURL}${ipfsContents[ipfsContents.findIndex(ipfsObject => ipfsObject.path.includes('social-media.json'))].path}`)
         .then(response => response.json())
         .then((jsonData) => {
@@ -60,6 +60,7 @@ class UserCard extends React.Component {
       socialData,
     } = this.state
     const {
+      address,
       user,
       ipfs,
       ipfsAPI,
@@ -70,11 +71,8 @@ class UserCard extends React.Component {
       onInitiateRevoke,
     } = this.props
 
-    console.log('Is Token Holder: ', isTokenHolder)
-
-    if(socialData) console.log(socialData)
     return (
-      <Card width='350px' height='350px' style={{position:'relative'}}>
+      <Card style={{position:'relative'}}>
         <SafeLink href={`${ipfsURL}${ipfs}`} target='_blank'>
           <Pic src={userPic}/>
         </SafeLink>
@@ -112,6 +110,9 @@ class UserCard extends React.Component {
               </Badge.Identity>
             )}
           </Owner>
+          {address.toLowerCase() != user.toLowerCase() && (
+            <Subheader>{address}</Subheader>
+          )}
           {socialData && socialData.website && socialData.website != '' && (
             <SocialLink href={socialData.website.includes('http') ? socialData.website : `http://${socialData.website}`} target='_blank'>
               <img src='images/server-solid.svg'/>
@@ -143,6 +144,16 @@ class UserCard extends React.Component {
   }
 }
 
+const Card = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 350px;
+  background: #ffffff;
+  border: 1px solid rgba(209, 209, 209, 0.5);
+  border-radius: 3px;
+  position: relative;
+`
+
 const Pic = styled.img`
   object-fit: cover;
   width:100%;
@@ -152,12 +163,13 @@ const Pic = styled.img`
 `
 const UserContent = styled.div`
   background-color: white;
-  min-height: 75px;
+  min-height: 65px;
   height:auto;
   width:100%;
   position: absolute;
   bottom: 0;
   padding-top:10px;
+  padding-bottom:10px;
 `
 const UserButtons = styled.div`
   text-align: right;
@@ -173,12 +185,21 @@ const Owner = styled.div`
   display: flex;
   font-size:0.8em;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   & > span:first-child {
     font-weight:bold;
     margin-left: 10px;
     margin-right: 10px;
   }
+`
+const Subheader = styled.div`
+  color:${theme.textSecondary};
+  max-width:100%;
+  display: flex;
+  font-size:0.8em;
+  align-items: center;
+  margin-left: 10px;
+  margin-bottom: 5px;
 `
 const Field = styled.div`
   max-width:100%;

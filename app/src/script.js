@@ -1,4 +1,5 @@
 import Aragon from '@aragon/client'
+import BN from 'bn.js'
 import { of } from './rxjs'
 import { addressesEqual } from './web3-utils'
 import votingAbi from './abi/voting.json'
@@ -113,6 +114,9 @@ async function createStore(tokenAddr, votingAddr) {
           case 'Authorized':
             nextState = updateAuthorized(nextState, returnValues)
             break
+          case 'Revoked':
+            nextState = updateRevoked(nextState, returnValues)
+            break
         }
       }
       return nextState
@@ -140,6 +144,7 @@ function updateRequests(state, returnValues) {
       ...returnValues,
       initiated: false,
       authorized: false,
+      approved: false,
       failed: false
     })
   } else {
@@ -147,6 +152,7 @@ function updateRequests(state, returnValues) {
       ...returnValues,
       initiated: false,
       authorized: false,
+      approved: false,
       failed: false,
     }
   }
@@ -161,7 +167,23 @@ function updateAuthorized(state, { user, requestID }) {
     addressesEqual(id.user, user)
   )
   if (idIndex !== -1) {
+    identities[idIndex].failed = false
     identities[idIndex].authorized = true
+  }
+  return {
+    ...state,
+    identities
+  }
+}
+function updateRevoked(state, { user, requestID }) {
+  const { identities = [] } = state
+  const idIndex = identities.findIndex(id =>
+    addressesEqual(id.user, user)
+  )
+  if (idIndex !== -1) {
+    identities[idIndex].authorized = false
+    identities[idIndex].approved = false
+    identities[idIndex].failed = true
   }
   return {
     ...state,
@@ -172,18 +194,39 @@ async function updateVote(voting, state, { voteId, creator }) {
   if(state.identityAddress){
     const { identityAddress, identities = [] } = state
     const subscript = '0x00000001' + identityAddress.substr(2).toLowerCase() + '0000002476c51f02000000000000000000000000'
-    const { open, executed, script } = await getVote(voting, voteId)
+    const { open, executed, supportRequired, minAcceptQuorum, yea, nay, votingPower, script } = await getVote(voting, voteId)
+    const pctBase = new BN(10).pow(new BN(18))
     if(script.includes(subscript)) {
       const user = script.replace(subscript, '0x')
       const idIndex = identities.findIndex(id =>
         addressesEqual(id.user, user)
       )
       if (idIndex !== -1) {
+        //Set initiated to true
         identities[idIndex].initiated = true
         if(open === false && executed === false){
-          identities[idIndex].failed = true
-        } else {
-          identities[idIndex].failed = false
+
+          const bnYea = new BN(yea)
+          const bnNay = new BN(nay)
+          const bnVotingPower = new BN(votingPower)
+          const bnSupportRequired = new BN(supportRequired)
+          const bnMinQuorum = new BN(minAcceptQuorum)
+          const totalVotes = bnYea.add(bnNay);
+          if (totalVotes.isZero()) {
+            identities[idIndex].failed = true
+          } else {
+            const yeaPct = bnYea.mul(pctBase).div(totalVotes)
+            const yeaOfTotalPowerPct = bnYea.mul(pctBase).div(bnVotingPower)
+            // Mirror on-chain calculation
+            // yea / votingPower > supportRequired ||
+            //   (yea / totalVotes > supportRequired &&
+            //    yea / votingPower > minAcceptQuorum)
+            if(yeaOfTotalPowerPct.gt(bnSupportRequired) || (yeaPct.gt(bnSupportRequired) && yeaOfTotalPowerPct.gt(bnMinQuorum))){
+              identities[idIndex].approved = true
+            } else {
+              identities[idIndex].failed = true
+            }
+          }
         }
       }
       return {

@@ -1,8 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Table, TableHeader, TableRow, TabBar, breakpoint } from '@aragon/ui'
+import { TabBar, breakpoint } from '@aragon/ui'
 import UserCard from '../components/UserCard'
-import SideBar from '../components/SideBar'
 
 class Identities extends React.Component {
   state = {
@@ -15,6 +14,7 @@ class Identities extends React.Component {
     proposals: [],
     authorized: [],
     failed: [],
+    approved: [],
   }
   setSelected = (index) => {
     this.setState({
@@ -25,10 +25,7 @@ class Identities extends React.Component {
   componentDidMount = async () => {
     const { userAccount, getBalance } = this.props
     if(userAccount != ''){
-      console.log('Getting balance')
-      console.log('User: ', userAccount)
       const balance = await getBalance(userAccount)
-      console.log('Balance: ', balance)
       if(balance > 0){
         this.setState({
           ...this.state,
@@ -45,10 +42,7 @@ class Identities extends React.Component {
 
   componentWillReceiveProps = async ({ userAccount, getBalance }) => {
     if(userAccount != ''){
-      console.log('Getting balance')
-      console.log('User: ', userAccount)
       const balance = await getBalance(userAccount)
-      console.log('Balance: ', balance)
       if(balance > 0){
         this.setState({
           ...this.state,
@@ -65,14 +59,15 @@ class Identities extends React.Component {
 
   render() {
     const {
+      users,
       requests,
       proposals,
+      approved,
       authorized,
       failed,
       userAccount,
       ipfsAPI,
       ipfsURL,
-      getBalance,
       onInitiateAuth,
       onInitiateRevoke,
     } = this.props
@@ -87,6 +82,7 @@ class Identities extends React.Component {
     if(proposals.length > 0) items.push('Proposals')
     if(authorized.length > 0) items.push('Confirmed')
     if(failed.length > 0) items.push('Rejected')
+    if(approved.length > 0) items.push('Awaiting Confirmation...')
 
     return (
       <Main>
@@ -101,7 +97,8 @@ class Identities extends React.Component {
            requests.map(({ user, requestID, ipfs }) => (
               <UserCard
                 key={user}
-                user={user}
+                address={user}
+                user={users[user]}
                 ipfs={ipfs}
                 ipfsAPI={ipfsAPI}
                 ipfsURL={ipfsURL}
@@ -114,7 +111,8 @@ class Identities extends React.Component {
            proposals.map(({ user, requestID, ipfs }) => (
               <UserCard
                 key={user}
-                user={user}
+                address={user}
+                user={users[user]}
                 ipfs={ipfs}
                 ipfsAPI={ipfsAPI}
                 ipfsURL={ipfsURL}
@@ -125,7 +123,8 @@ class Identities extends React.Component {
            authorized.map(({ user, requestID, ipfs }) => (
               <UserCard
                 key={user}
-                user={user}
+                address={user}
+                user={users[user]}
                 ipfs={ipfs}
                 ipfsAPI={ipfsAPI}
                 ipfsURL={ipfsURL}
@@ -138,13 +137,26 @@ class Identities extends React.Component {
            failed.map(({ user, requestID, ipfs }) => (
               <UserCard
                 key={user}
-                user={user}
+                address={user}
+                user={users[user]}
                 ipfs={ipfs}
                 ipfsAPI={ipfsAPI}
                 ipfsURL={ipfsURL}
                 isCurrentUser={userAccount && userAccount === user}
                 isTokenHolder={isTokenHolder}
                 onInitiateAuth={onInitiateAuth}
+              />
+            ))}
+          {items[selected] == 'Awaiting Confirmation...' &&
+           approved.map(({ user, requestID, ipfs }) => (
+              <UserCard
+                key={user}
+                address={user}
+                user={users[user]}
+                ipfs={ipfs}
+                ipfsAPI={ipfsAPI}
+                ipfsURL={ipfsURL}
+                isCurrentUser={userAccount && userAccount === user}
               />
             ))}
         </Grid>

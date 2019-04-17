@@ -1,7 +1,9 @@
 import React from 'react'
+import Box from '3box'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import BN from 'bn.js'
+import showdown from 'showdown'
 import {
   AppBar,
   AppView,
@@ -31,22 +33,38 @@ class App extends React.Component {
     proposals: [],
     authorized: [],
     failed: [],
-    network: {},
+    approved: [],
     userAccount: '',
     tokenAddress: null,
   }
   state = {
+    users: [],
     sidepanelOpened: false,
     token: null,
   }
 
-  componentWillReceiveProps = async ({ app, tokenAddress, userAccount }) => {
+  componentWillReceiveProps = async ({ app, tokenAddress, userAccount, users }) => {
     if(!this.state.token && tokenAddress){
       const token = app.external(tokenAddress, tokenAbi)
       this.setState({
         ...this.state,
         token,
       })
+    }
+    if(users){
+      let userDict = {}
+      let promiseArray = []
+      users.forEach((user) => {
+        userDict[user] = user
+        promiseArray.push(Box.getProfile(user))
+      })
+      this.setState({users: userDict})
+      const profiles = await Promise.all(promiseArray)
+      for(var i=0; i<users.length; i++){
+        userDict[users[i]] = profiles[i].name
+        app.modifyAddressIdentity(users[i], profiles[i])
+      }
+      this.setState({users: userDict})
     }
   }
 
@@ -64,9 +82,10 @@ class App extends React.Component {
     return this.props.userAccount
   }
 
-  handleSubmission = ({ buffer, type, website, twitter, twitter_name, facebook, facebook_name, github, github_name, keybase, keybase_name }) => {
+  handleSubmission = ({ buffer, type, intro, website, twitter, twitter_name, facebook, facebook_name, github, github_name, keybase, keybase_name }) => {
     const { app, userAccount } = this.props
     if(userAccount !== ''){
+
       //Generate json file
       const json = JSON.stringify({
                 website: website,
@@ -87,14 +106,23 @@ class App extends React.Component {
           content: ipfs.types.Buffer.from(json)
         },
         {
-          path: 'folder/mugshot.' + type,
+          path: 'folder/pic.' + type,
           content: buffer
         }
       ]
+
+      if(intro != ''){
+        const converter = new showdown.Converter()
+        const html = converter.makeHtml(intro)
+        files.push({
+          path: 'folder/introduction.html',
+          content: ipfs.types.Buffer.from(html)
+        })
+      }
+
       //console.log('Uploading to IPFS. Please wait...')
       ipfs.add(files)
         .then(results => {
-          //console.log(results)
           const hashIndex = results.findIndex(ipfsObject => ipfsObject.path === "folder")
           this.handleSidepanelClose()
           //Save request ot Ethereum (two parts -- submitProof, then requestAuthorization (which goes to a vote))
@@ -154,11 +182,14 @@ class App extends React.Component {
     const {
       requests,
       proposals,
+      approved,
       authorized,
       failed,
       userAccount,
     } = this.props
+
     const {
+      users,
       sidepanelOpened,
     } = this.state
     return (
@@ -187,10 +218,12 @@ class App extends React.Component {
               />
             }
           >
-            {(requests.length > 0 || proposals.length > 0 || authorized.length > 0 || failed.length > 0) ? (
+            {(requests.length > 0 || proposals.length > 0 || authorized.length > 0 || failed.length > 0 || approved.length > 0) ? (
               <Identities
+                users={users}
                 requests={requests}
                 proposals={proposals}
+                approved={approved}
                 authorized={authorized}
                 failed={failed}
                 userAccount={userAccount}
@@ -247,13 +280,21 @@ export default observe(
       const { identities } = state
       return {
         ...state,
+        users: identities
+          ? identities
+              .map(identity => identity.user)
+          : [],
         requests: identities
           ? identities
               .filter(({ authorized, initiated }) => (authorized === false && initiated === false))
           : [],
         proposals: identities
           ? identities
-              .filter(({ authorized, failed, initiated }) => (authorized === false && failed === false && initiated === true))
+              .filter(({ approved, authorized, failed, initiated }) => (approved === false && authorized === false && failed === false && initiated === true))
+          : [],
+        approved: identities
+          ? identities
+              .filter(({ approved, authorized }) => (authorized === false && approved === true))
           : [],
         authorized: identities
           ? identities
