@@ -1,4 +1,6 @@
-#MyBit Identity
+# DEPRECATED - See https://github.com/MyBitFoundation/MyBit-DAO.tech instead
+
+# MyBit Identity
 ## mybit-identity.open.aragonpm.eth v1.1.1:
  - Content (ipfs): QmNfQK75jCouZJY7EiRPoiLHXEk1m8vAPTaSV1gdKTGbN6
  - Transaction hash: 0x9ba7382fa93bdb65b6c3d8159a26d295482d09168ec7fd24892a8b70415323ab
